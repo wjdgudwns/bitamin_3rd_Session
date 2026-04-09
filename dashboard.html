@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wine Classification Dashboard</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --panel: rgba(255, 251, 245, 0.9);
+      --panel-strong: #fffdf9;
+      --ink: #1f2937;
+      --muted: #6b7280;
+      --line: rgba(148, 163, 184, 0.25);
+      --accent: #b45309;
+      --accent-soft: #f59e0b;
+      --accent-fade: rgba(245, 158, 11, 0.14);
+      --green: #047857;
+      --green-soft: rgba(4, 120, 87, 0.14);
+      --red-soft: rgba(190, 24, 93, 0.12);
+      --shadow: 0 18px 45px rgba(77, 55, 24, 0.12);
+      --radius: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(245, 158, 11, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(4, 120, 87, 0.14), transparent 24%),
+        linear-gradient(180deg, #fbf7ef 0%, #f4efe6 45%, #efe7db 100%);
+      min-height: 100vh;
+    }
+
+    .wrap {
+      width: min(1200px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 36px 0 48px;
+    }
+
+    .hero {
+      padding: 36px;
+      border-radius: 32px;
+      background: linear-gradient(135deg, rgba(255,255,255,0.88), rgba(255,248,236,0.92));
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255,255,255,0.6);
+      display: grid;
+      gap: 22px;
+    }
+
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--accent-fade);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 14px 0 10px;
+      font-size: clamp(30px, 5vw, 54px);
+      line-height: 1.03;
+      letter-spacing: -0.03em;
+      max-width: 10ch;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 760px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+
+    .hero-grid,
+    .stats-grid,
+    .main-grid,
+    .insight-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-top: 18px;
+    }
+
+    .main-grid {
+      grid-template-columns: 1.15fr 0.85fr;
+      margin-top: 18px;
+    }
+
+    .insight-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      margin-top: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      backdrop-filter: blur(8px);
+    }
+
+    .metric-card {
+      padding: 20px 22px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,248,239,0.92));
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .metric-value {
+      margin-top: 10px;
+      font-size: clamp(28px, 4vw, 42px);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .metric-sub {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 18px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: 22px;
+      letter-spacing: -0.02em;
+    }
+
+    .section-head span {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .kv-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .kv {
+      padding: 16px;
+      border-radius: 18px;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+    }
+
+    .kv strong,
+    .mini-note strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .kv span {
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .mini-note {
+      margin-top: 16px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: var(--green-soft);
+      border: 1px solid rgba(4, 120, 87, 0.16);
+      color: #065f46;
+      line-height: 1.7;
+      font-size: 14px;
+    }
+
+    .chart-box {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 120px 1fr 64px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .bar-label,
+    .matrix-label {
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .bar-track {
+      position: relative;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.18);
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--accent-soft), var(--accent));
+    }
+
+    .bar-fill.alt {
+      background: linear-gradient(90deg, #10b981, #047857);
+    }
+
+    .bar-value {
+      text-align: right;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      background: rgba(255,255,255,0.5);
+    }
+
+    td:first-child,
+    th:first-child {
+      text-align: left;
+    }
+
+    .matrix-wrap {
+      overflow-x: auto;
+    }
+
+    .matrix-table td {
+      min-width: 64px;
+      font-weight: 700;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--green-soft);
+      color: var(--green);
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .note-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .note-item {
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      line-height: 1.7;
+      font-size: 15px;
+    }
+
+    .note-item.warn {
+      background: rgba(190, 24, 93, 0.04);
+      border-color: rgba(190, 24, 93, 0.12);
+    }
+
+    .footer {
+      margin-top: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: right;
+    }
+
+    @media (max-width: 960px) {
+      .hero-grid,
+      .stats-grid,
+      .main-grid,
+      .insight-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .wrap {
+        width: min(100% - 20px, 1200px);
+        padding-top: 18px;
+      }
+
+      .hero,
+      .card {
+        padding: 20px;
+        border-radius: 22px;
+      }
+
+      .hero-grid,
+      .stats-grid,
+      .main-grid,
+      .insight-grid,
+      .kv-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .bar-row {
+        grid-template-columns: 1fr;
+      }
+
+      .bar-value {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <div class="hero-top">
+        <div>
+          <div class="eyebrow">Model Performance Dashboard</div>
+          <h1>Wine Classification Results</h1>
+          <p id="hero-summary"></p>
+        </div>
+        <div class="pill" id="confidence-pill"></div>
+      </div>
+      <div class="hero-grid" id="hero-grid"></div>
+    </section>
+
+    <section class="stats-grid" id="stats-grid"></section>
+
+    <section class="main-grid">
+      <article class="card">
+        <div class="section-head">
+          <div>
+            <h2>모델 개요 및 데이터 분할</h2>
+            <span>데이터셋, 모델 구성, 전체 feature 수와 train/test 분할 정보를 정리했습니다.</span>
+          </div>
+        </div>
+        <div class="kv-grid" id="overview-grid"></div>
+      </article>
+
+      <article class="card">
+        <div class="section-head">
+          <div>
+            <h2>성능 비교 Bar Chart</h2>
+            <span>교차검증 평균, OOF 정확도, 테스트 정확도를 한 번에 비교합니다.</span>
+          </div>
+        </div>
+        <div class="chart-box" id="bar-chart"></div>
+        <div class="mini-note" id="cv-note"></div>
+      </article>
+    </section>
+
+    <section class="main-grid">
+      <article class="card">
+        <div class="section-head">
+          <div>
+            <h2>클래스별 성능</h2>
+            <span>테스트셋 기준 precision, recall, f1-score를 확인합니다.</span>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Class</th>
+              <th>Precision</th>
+              <th>Recall</th>
+              <th>F1-score</th>
+              <th>Support</th>
+            </tr>
+          </thead>
+          <tbody id="class-metrics-body"></tbody>
+        </table>
+      </article>
+
+      <article class="card">
+        <div class="section-head">
+          <div>
+            <h2>Confusion Matrix</h2>
+            <span>테스트셋 예측 결과의 오분류 위치를 확인합니다.</span>
+          </div>
+        </div>
+        <div class="matrix-wrap">
+          <table class="matrix-table">
+            <thead id="matrix-head"></thead>
+            <tbody id="matrix-body"></tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <section class="insight-grid">
+      <article class="card">
+        <div class="section-head">
+          <div>
+            <h2>핵심 해석</h2>
+            <span>과적합 가능성, 성능 신뢰도, CV와 테스트 간 차이를 포함합니다.</span>
+          </div>
+        </div>
+        <div class="note-list" id="interpretation-list"></div>
+      </article>
+
+      <article class="card">
+        <div class="section-head">
+          <div>
+            <h2>추가 개선 방향</h2>
+            <span>실험 확장 시 우선 검토할 수 있는 개선 아이디어입니다.</span>
+          </div>
+        </div>
+        <div class="note-list" id="improvement-list"></div>
+      </article>
+    </section>
+
+    <div class="footer">Generated from results.json</div>
+  </div>
+
+  <script>
+    const results = {
+      "dataset": "Wine",
+      "model_name": "LogisticRegression + StandardScaler",
+      "random_state": 42,
+      "n_samples_total": 178,
+      "n_features": 13,
+      "feature_names": [
+        "alcohol",
+        "malic_acid",
+        "ash",
+        "alcalinity_of_ash",
+        "magnesium",
+        "total_phenols",
+        "flavanoids",
+        "nonflavanoid_phenols",
+        "proanthocyanins",
+        "color_intensity",
+        "hue",
+        "od280/od315_of_diluted_wines",
+        "proline"
+      ],
+      "class_names": ["class_0", "class_1", "class_2"],
+      "train_size": 142,
+      "test_size": 36,
+      "cross_validation": {
+        "strategy": "RepeatedStratifiedKFold",
+        "n_splits": 5,
+        "n_repeats": 5,
+        "scoring": "accuracy",
+        "scores": [
+          0.9310344827586207, 1.0, 1.0, 1.0, 0.9642857142857143,
+          1.0, 1.0, 0.9642857142857143, 1.0, 0.9642857142857143,
+          0.9655172413793104, 0.9655172413793104, 1.0, 0.9642857142857143, 1.0,
+          1.0, 0.9310344827586207, 1.0, 0.9642857142857143, 1.0,
+          1.0, 1.0, 0.9642857142857143, 0.9642857142857143, 1.0
+        ],
+        "mean_accuracy": 0.9817241379310346,
+        "std_accuracy": 0.022332934863472452
+      },
+      "oof_evaluation": {
+        "strategy": "StratifiedKFold",
+        "n_splits": 5,
+        "classification_report": {
+          "class_0": {"precision": 0.9591836734693877, "recall": 1.0, "f1-score": 0.9791666666666666, "support": 47.0},
+          "class_1": {"precision": 1.0, "recall": 0.9473684210526315, "f1-score": 0.972972972972973, "support": 57.0},
+          "class_2": {"precision": 0.9743589743589743, "recall": 1.0, "f1-score": 0.987012987012987, "support": 38.0},
+          "accuracy": 0.9788732394366197,
+          "macro avg": {"precision": 0.9778475492761207, "recall": 0.9824561403508771, "f1-score": 0.9797175422175423, "support": 142.0},
+          "weighted avg": {"precision": 0.9796286878781849, "recall": 0.9788732394366197, "f1-score": 0.9787801852062417, "support": 142.0}
+        },
+        "confusion_matrix": [[47, 0, 0], [2, 54, 1], [0, 0, 38]]
+      },
+      "test_evaluation": {
+        "accuracy": 0.9722222222222222,
+        "classification_report": {
+          "class_0": {"precision": 1.0, "recall": 1.0, "f1-score": 1.0, "support": 12.0},
+          "class_1": {"precision": 0.9333333333333333, "recall": 1.0, "f1-score": 0.9655172413793104, "support": 14.0},
+          "class_2": {"precision": 1.0, "recall": 0.9, "f1-score": 0.9473684210526315, "support": 10.0},
+          "accuracy": 0.9722222222222222,
+          "macro avg": {"precision": 0.9777777777777779, "recall": 0.9666666666666667, "f1-score": 0.9709618874773139, "support": 36.0},
+          "weighted avg": {"precision": 0.974074074074074, "recall": 0.9722222222222222, "f1-score": 0.9719701552732407, "support": 36.0}
+        },
+        "confusion_matrix": [[12, 0, 0], [0, 14, 0], [0, 1, 9]]
+      }
+    };
+
+    const pct = (value) => `${(value * 100).toFixed(2)}%`;
+    const fixed = (value) => Number(value).toFixed(4);
+
+    const cvMean = results.cross_validation.mean_accuracy;
+    const cvStd = results.cross_validation.std_accuracy;
+    const oofAcc = results.oof_evaluation.classification_report.accuracy;
+    const testAcc = results.test_evaluation.accuracy;
+    const gap = cvMean - testAcc;
+
+    const confidenceText = Math.abs(gap) < 0.02 && cvStd < 0.03
+      ? "신뢰도: 높음"
+      : "신뢰도: 보통";
+
+    document.getElementById("confidence-pill").textContent = confidenceText;
+    document.getElementById("hero-summary").textContent =
+      `${results.dataset} 데이터셋 ${results.n_samples_total}개 샘플과 ${results.n_features}개 feature를 사용해 ` +
+      `${results.model_name} 모델을 평가했습니다. 교차검증 평균 정확도는 ${pct(cvMean)}, 테스트 정확도는 ${pct(testAcc)}입니다.`;
+
+    const heroMetrics = [
+      ["CV Mean Accuracy", pct(cvMean), `${results.cross_validation.n_splits} folds x ${results.cross_validation.n_repeats} repeats`],
+      ["CV Std", pct(cvStd), "반복 교차검증 분산"],
+      ["Test Accuracy", pct(testAcc), "최종 홀드아웃 평가"],
+      ["Generalization Gap", `${(gap * 100).toFixed(2)}%p`, "CV 평균 - 테스트 정확도"]
+    ];
+
+    const heroGrid = document.getElementById("hero-grid");
+    heroMetrics.forEach(([label, value, sub]) => {
+      const el = document.createElement("div");
+      el.className = "metric-card";
+      el.innerHTML = `<div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-sub">${sub}</div>`;
+      heroGrid.appendChild(el);
+    });
+
+    const stats = [
+      ["총 샘플 수", results.n_samples_total, "Wine 전체 데이터 수"],
+      ["Feature 수", results.n_features, results.feature_names.slice(0, 4).join(", ") + " ..."],
+      ["Train / Test", `${results.train_size} / ${results.test_size}`, "약 80% / 20% 분할"],
+      ["Macro F1 (Test)", fixed(results.test_evaluation.classification_report["macro avg"]["f1-score"]), "클래스 균형 관점"]
+    ];
+
+    const statsGrid = document.getElementById("stats-grid");
+    stats.forEach(([label, value, sub]) => {
+      const el = document.createElement("article");
+      el.className = "card metric-card";
+      el.innerHTML = `<div class="metric-label">${label}</div><div class="metric-value">${value}</div><div class="metric-sub">${sub}</div>`;
+      statsGrid.appendChild(el);
+    });
+
+    const overviewItems = [
+      ["데이터셋", results.dataset],
+      ["모델", results.model_name],
+      ["전체 샘플 수", `${results.n_samples_total}`],
+      ["전체 Feature 수", `${results.n_features}`],
+      ["Train size", `${results.train_size}`],
+      ["Test size", `${results.test_size}`],
+      ["분할 방식", `train_test_split, random_state=${results.random_state}, stratify=y`],
+      ["클래스 수", `${results.class_names.length} classes (${results.class_names.join(", ")})`]
+    ];
+
+    const overviewGrid = document.getElementById("overview-grid");
+    overviewItems.forEach(([key, value]) => {
+      const el = document.createElement("div");
+      el.className = "kv";
+      el.innerHTML = `<strong>${key}</strong><span>${value}</span>`;
+      overviewGrid.appendChild(el);
+    });
+
+    const barChart = document.getElementById("bar-chart");
+    const barMetrics = [
+      ["CV Mean", cvMean, false],
+      ["OOF Accuracy", oofAcc, true],
+      ["Test Accuracy", testAcc, true]
+    ];
+    barMetrics.forEach(([label, value, alt]) => {
+      const row = document.createElement("div");
+      row.className = "bar-row";
+      row.innerHTML = `
+        <div class="bar-label">${label}</div>
+        <div class="bar-track"><div class="bar-fill ${alt ? "alt" : ""}" style="width:${value * 100}%"></div></div>
+        <div class="bar-value">${pct(value)}</div>
+      `;
+      barChart.appendChild(row);
+    });
+
+    document.getElementById("cv-note").innerHTML =
+      `<strong>교차검증 평균 정확도와 표준편차</strong>${pct(cvMean)} ± ${pct(cvStd)}. ` +
+      `표준편차가 크지 않아 분할에 따른 성능 흔들림은 제한적입니다.`;
+
+    const classBody = document.getElementById("class-metrics-body");
+    results.class_names.forEach((className) => {
+      const m = results.test_evaluation.classification_report[className];
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${className}</td>
+        <td>${fixed(m.precision)}</td>
+        <td>${fixed(m.recall)}</td>
+        <td>${fixed(m["f1-score"])}</td>
+        <td>${m.support}</td>
+      `;
+      classBody.appendChild(row);
+    });
+
+    const matrixHead = document.getElementById("matrix-head");
+    const headRow = document.createElement("tr");
+    headRow.innerHTML = `<th>Actual \\ Pred</th>${results.class_names.map((name) => `<th>${name}</th>`).join("")}`;
+    matrixHead.appendChild(headRow);
+
+    const matrixBody = document.getElementById("matrix-body");
+    const maxCell = Math.max(...results.test_evaluation.confusion_matrix.flat());
+    results.test_evaluation.confusion_matrix.forEach((row, rowIndex) => {
+      const tr = document.createElement("tr");
+      const cells = row.map((value) => {
+        const intensity = value / maxCell;
+        const bg = `rgba(180, 83, 9, ${0.08 + intensity * 0.45})`;
+        return `<td style="background:${bg}">${value}</td>`;
+      }).join("");
+      tr.innerHTML = `<td class="matrix-label">${results.class_names[rowIndex]}</td>${cells}`;
+      matrixBody.appendChild(tr);
+    });
+
+    const interpretationItems = [
+      `교차검증 평균 정확도는 ${pct(cvMean)}, 테스트 정확도는 ${pct(testAcc)}로 차이가 ${(Math.abs(gap) * 100).toFixed(2)}%p에 그칩니다. CV와 테스트 성능이 가깝기 때문에 일반화 성능은 대체로 안정적입니다.`,
+      `과적합 가능성은 낮지만 완전히 없다고 보기는 어렵습니다. 데이터셋이 178개로 작아 일부 분할에서는 성능이 쉽게 높게 나올 수 있으므로, 현재 결과는 '작은 데이터셋에서의 우수한 성능'으로 해석하는 편이 적절합니다.`,
+      `교차검증 표준편차가 ${pct(cvStd)}로 낮은 편이어서 분할에 따른 성능 변동은 제한적입니다. 따라서 현재 모델 성능에 대한 신뢰도는 비교적 높은 편입니다.`,
+      `테스트 confusion matrix에서는 class_2가 한 번 class_1로 오분류되었습니다. 즉 전반적 성능은 우수하지만, class_1과 class_2의 경계는 추가 확인 여지가 있습니다.`
+    ];
+
+    const interpretationList = document.getElementById("interpretation-list");
+    interpretationItems.forEach((text, index) => {
+      const item = document.createElement("div");
+      item.className = `note-item${index === 1 ? " warn" : ""}`;
+      item.textContent = text;
+      interpretationList.appendChild(item);
+    });
+
+    const improvements = [
+      "더 많은 학습 데이터를 확보해 작은 표본에 따른 분산과 우연한 고성능 가능성을 줄일 수 있습니다.",
+      "Logistic Regression 외에 Random Forest, XGBoost, SVM 같은 대안 모델을 비교해 비선형 패턴 대응력을 점검할 수 있습니다.",
+      "하이퍼파라미터 튜닝과 feature selection을 적용하면 일부 클래스 경계에서의 오분류를 더 줄일 수 있습니다.",
+      "별도 외부 검증셋이나 반복 hold-out 실험을 추가하면 현재 성능에 대한 신뢰도를 더 강하게 확보할 수 있습니다."
+    ];
+
+    const improvementList = document.getElementById("improvement-list");
+    improvements.forEach((text) => {
+      const item = document.createElement("div");
+      item.className = "note-item";
+      item.textContent = text;
+      improvementList.appendChild(item);
+    });
+  </script>
+</body>
+</html>
